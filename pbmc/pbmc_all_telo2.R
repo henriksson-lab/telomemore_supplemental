@@ -145,7 +145,7 @@ for(i in c(1:4)){
 
 
 ################################################################################
-################### batch correction ###########################################
+################### RNA processing with batch correction #######################
 ################################################################################
 
 
@@ -165,8 +165,6 @@ adata<- subset(adata,
                subset = percent.mt < 40 & 
                  nFeature_RNA > 500 & nFeature_RNA < 10000 & 
                  nCount_RNA > 200 & nCount_RNA<30000)
-
-
 
 ###############
 
@@ -189,15 +187,6 @@ DefaultAssay(adata) <- "integrated"
 adata <- ScaleData(adata, verbose = FALSE)
 adata <- RunPCA(adata, npcs = 30, verbose = FALSE)
 adata <- RunUMAP(adata, reduction = "pca", dims = 1:30)
-#adata <- FindNeighbors(adata, reduction = "pca", dims = 1:30)
-#adata <- FindClusters(adata, resolution = 0.5)
-#adata$rna_clusters_i <- factor(sprintf("ri_%s",adata$seurat_clusters))
-
-VlnPlot(adata, c("rank_norm_telo"))
-#8=NK and 9=CD8 effector memory  and 16=NK cell     very up
-#3=CD8 effector memory.  10=main monocyte classical and 11=monocyte very down; compare to 7 which is up
-#DimPlot(object = adata,  group.by = "rna_clusters_i", label = TRUE)
-
 
 
 #cell cycle scoring
@@ -210,76 +199,6 @@ if(FALSE){
 }
 
 
-# 
-# 
-# FeaturePlot(object = adata, features = c("nCount_RNA","percent.mt","nFeature_RNA"))
-# FeaturePlot(object = adata, features = c("nCount_ATAC", "TSS.enrichment", "nucleosome_signal"))
-# FeaturePlot(object = adata, features = c("norm_telo"))
-# FeaturePlot(object = adata, features = c("rank_norm_telo"))
-# #FeaturePlot(object = adata, features = c("rank_norm_telo"), split.by = "lib")
-# 
-# FeaturePlot(object = adata, features = c("prob_doublet"))
-# DimPlot(object = adata, group.by = "Phase", label = TRUE)
-# DimPlot(object = adata, group.by = "lib") #pbmc_gran_uns stands out in telomeres
-# DimPlot(object = adata,  pt.size = 0.3, group.by = "trust4", cols=c("black","green","white","red"))
-# 
-# #DimPlot(object = adata, reduction = 'UMAP_RNA', group.by = "rna_clusters", label = TRUE)
-# #DimPlot(object = adata, reduction = 'UMAP_RNA', group.by = "rna_clusters2", label = TRUE)
-# DimPlot(object = adata,  group.by = "rna_clusters_i", label = TRUE)
-# #DimPlot(object = adata, reduction = 'UMAP_RNA', group.by = "ct", label = TRUE)
-# 
-# 
-# 
-# ######### Predicted cell types
-# DimPlot(object = adata,  group.by = "pred.dice", label = TRUE)
-# #new CD14 monocyte cluster in lib3,4
-# 
-# DimPlot(object = adata, group.by = "pred.hpca", label = TRUE)
-# 
-# DimPlot(object = adata, group.by = "pred.monaco", label = TRUE)  
-# #FindConservedMarkers
-# #switched memory B up in telo
-# #nonclassical CD14 def up in telo!!
-# #subset of NK with a lot of telo up
-# #some Th17 def up
-
-################################################################################
-################### RNA basic processing #######################################
-################################################################################
-# 
-# DefaultAssay(adata) <- "RNA"
-# 
-# adata[["percent.mt"]] <- PercentageFeatureSet(adata, pattern = "^MT")
-# adata[['percent.ribo']]<- PercentageFeatureSet(adata, "^RP[SL]")
-# 
-# ## Visualize QC metrics as a violin plot
-# VlnPlot(adata, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 2,pt.size = 0)
-# plot1 <- FeatureScatter(adata, feature1 = "nCount_RNA", feature2 = "percent.mt")
-# plot2 <- FeatureScatter(adata, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
-# plot1 + plot2
-# 
-# ## Remove bad cells
-# adata<- subset(adata, 
-#                subset = percent.mt < 40 & 
-#                  nFeature_RNA > 500 & nFeature_RNA < 10000 & 
-#                  nCount_RNA > 200 & nCount_RNA<30000)
-# # 
-# ## Normalization
-# adata<- NormalizeData(adata,normalization.method = 'LogNormalize')
-# 
-# #cell cycle scoring
-# s.genes <- cc.genes.updated.2019$s.genes
-# g2m.genes <- cc.genes.updated.2019$g2m.genes
-# adata <- CellCycleScoring(adata, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
-# if(FALSE){
-#   #Possible CC removal
-#   adata <- ScaleData(adata, vars.to.regress = c('S.Score','G2M.Score'))
-# }
-# 
-# 
-# ## HIGHLY VARIABLE FEATURE ANALYSIS. gets 850 with previous automatic method
-# adata <- FindVariableFeatures(adata, selection.method = 'vst',binning.method = 'equal_frequency', verbose = T, nfeatures = 1000)
-# adata <- ScaleData(adata, features = rownames(adata)) #default is to only use highly variable features
 
 
 ################################################################################
@@ -459,18 +378,6 @@ adata$atac_clusters3 <- factor(sprintf("a3_%s",adata$seurat_clusters))
 ################################################################################
 
 
-# ################### Compare RNA-based clusters - 1
-# DefaultAssay(adata) <- "RNA"
-# Idents(adata) <- adata$rna_clusters
-# cluster_markers_rna1 <- FindAllMarkers(adata, only.pos = F, test.use = 'wilcox')
-# cluster_markers_rna1 %>% group_by(cluster) %>% top_n(n = 20, wt = avg_log2FC) -> top10_rna
-# 
-# ################### Compare RNA-based clusters - 2
-# DefaultAssay(adata) <- "RNA"
-# Idents(adata) <- adata$rna_clusters2
-# cluster_markers_rna2 <- FindAllMarkers(adata, only.pos = F, test.use = 'wilcox')
-# cluster_markers_rna2 %>% group_by(cluster) %>% top_n(n = 40, wt = avg_log2FC) -> top10_rna2
-
 ################### Compare ATAC-based clusters - 1
 DefaultAssay(adata) <- "RNA" #yes!
 Idents(adata) <- adata$atac_clusters
@@ -483,23 +390,11 @@ Idents(adata) <- adata$rna_clusters3
 cluster_markers_rna3 <- FindAllMarkers(adata, only.pos = F, test.use = 'wilcox')
 cluster_markers_rna3 %>% group_by(cluster) %>% top_n(n = 20, wt = avg_log2FC) -> top10_rna3
 
-################### Compare RNA-based clusters - 4
-# DefaultAssay(adata) <- "RNA"
-# Idents(adata) <- adata$rna_clusters4
-# cluster_markers_rna4 <- FindAllMarkers(adata, only.pos = F, test.use = 'wilcox')
-# cluster_markers_rna4 %>% group_by(cluster) %>% top_n(n = 20, wt = avg_log2FC) -> top10_rna4
-
 ################### Compare ATAC-based clusters - a3
 DefaultAssay(adata) <- "RNA" #yes!
 Idents(adata) <- adata$atac_clusters3
 cluster_markers_atac3 <- FindAllMarkers(adata, only.pos = F, test.use = 'wilcox', )
 cluster_markers_atac3 %>% group_by(cluster) %>% top_n(n = 20, wt = avg_log2FC) -> top10_atac3
-
-# ################### Compare Phase-based clusters - fine
-# DefaultAssay(adata) <- "RNA"
-# Idents(adata) <- adata$Phase
-# cluster_markers_phase <- FindAllMarkers(adata, only.pos = F, test.use = 'wilcox')
-# cluster_markers_phase %>% group_by(cluster) %>% top_n(n = 20, wt = avg_log2FC) -> top10_phase
 
 
 
@@ -712,25 +607,11 @@ p1/p2|p3/p4|p5/p6
 ################### Plot genes 2D ##############################################
 ################################################################################
 
+
 DefaultAssay(adata) <- "RNA"
 
-#### For paper -- supplementary
-666
-# DefaultAssay(adata) <- "RNA"
-# p1 <- FeaturePlot(object = adata, reduction = 'UMAP_RNA', features = c("AICDA")) #+ ggtitle("RNA")
-# p2 <- FeaturePlot(object = adata, reduction = 'UMAP_ATAC', features = c("AICDA"))#+ ggtitle("peaks")
-# p3 <- FeaturePlot(object = adata, reduction = 'UMAP_RNA', features = c("rank_norm_telo")) #+ ggtitle("RNA")
-# p4 <- FeaturePlot(object = adata, reduction = 'UMAP_ATAC', features = c("rank_norm_telo"))#+ ggtitle("peaks")
-# p5 <- DimPlot(object = adata, reduction = 'UMAP_RNA',  pt.size = 1,group.by = "Phase", label = TRUE)+ ggtitle("Phase | RNA")
-# p6 <- DimPlot(object = adata, reduction = 'UMAP_ATAC', pt.size = 1,group.by = "Phase", label = TRUE)+ ggtitle("Phase | ATAC")
-# p1/p2|p3/p4|p5/p6
-
-
-
 showgenes <- c(
-  "IGHD",  #immature, then entry to DZ. PC2 is really a IGHD axis
-  "ITGAX",   #up in mature only
-  "SOX5"   #up in mature and most GC -- sits together in ATAC
+  "SOX5"   
 )
 FeaturePlot(adata, features = showgenes, reduction = "UMAP_RNA") 
 FeaturePlot(adata, features = showgenes, reduction = "UMAP_ATAC") 
@@ -849,30 +730,23 @@ plot_umap_gene(adata,"UMAP_ATAC_3D","GZMH","rna_clusters3")
 plot_umap_gene(adata,"UMAP_ATAC_3D","ZEB2","rna_clusters3")
 
 ############ Make sense of clusters
-plot_umap_gene(adata,"UMAP_RNA_3D","GZMK","rna_clusters3")  #does not explain nTA well.
-plot_umap_gene(adata,"UMAP_RNA_3D","CD8A","rna_clusters3")  #also in r3_3
-plot_umap_gene(adata,"UMAP_RNA_3D","CCL5","rna_clusters3")  #correlates even better with nTA
-plot_umap_gene(adata,"UMAP_RNA_3D","NKG7","rna_clusters3")  #really correlates with nTA!
-plot_umap_gene(adata,"UMAP_RNA_3D","CD4","rna_clusters3")   #r3_0 and r3_2 ... not r3_3
-plot_umap_gene(adata,"UMAP_RNA_3D","GZMH","rna_clusters3")  #with GZMK, could go for nTA
+plot_umap_gene(adata,"UMAP_RNA_3D","GZMK","rna_clusters3")  
+plot_umap_gene(adata,"UMAP_RNA_3D","CD8A","rna_clusters3")  
+plot_umap_gene(adata,"UMAP_RNA_3D","CCL5","rna_clusters3")  
+plot_umap_gene(adata,"UMAP_RNA_3D","NKG7","rna_clusters3")  
+plot_umap_gene(adata,"UMAP_RNA_3D","CD4","rna_clusters3")   
+plot_umap_gene(adata,"UMAP_RNA_3D","GZMH","rna_clusters3")  
 
 
 plot_umap_gene(adata,"UMAP_ATAC_3D","CD14","rna_clusters3")
 plot_umap_gene(adata,"UMAP_ATAC_3D","FCGR3A","rna_clusters3") #CD16
 
 
-plot_umap_gene(adata,"UMAP_RNA_3D","CDK6","rna_clusters3")  #spread all across!
-plot_umap_gene(adata,"UMAP_RNA_3D","CDKN1C","rna_clusters3") #really up at the end of the tip. this part is up in S/G2M
+plot_umap_gene(adata,"UMAP_RNA_3D","CDKN1C","rna_clusters3") 
 plot_umap_gene(adata,"UMAP_RNA_3D","CD14","rna_clusters3")
 plot_umap_gene(adata,"UMAP_RNA_3D","FCGR3A","rna_clusters3") #CD16
 plot_umap_gene(adata,"UMAP_RNA_3D","FUT4","rna_clusters3") #CD15
 plot_umap_gene(adata,"UMAP_RNA_3D","ITGAM","rna_clusters3") #CD11b
-plot_umap_gene(adata,"UMAP_RNA_3D","","rna_clusters3")
-plot_umap_gene(adata,"UMAP_RNA_3D","","rna_clusters3")
-plot_umap_gene(adata,"UMAP_RNA_3D","","rna_clusters3")
-plot_umap_gene(adata,"UMAP_RNA_3D","","rna_clusters3")
-plot_umap_gene(adata,"UMAP_RNA_3D","","rna_clusters3")
-plot_umap_gene(adata,"UMAP_RNA_3D","","rna_clusters3")
 
 
  #CD11b
@@ -930,23 +804,10 @@ assignCelltypes <- function(the_clusters, ct_assignment){
 #   "r4_13:nonGC naive odd"  #up in IGHG1 oddly. somewhat toward plasma
 # )
 # adata$ct <- assignCelltypes(adata$rna_clusters4, ct_assignment)
+#
+# Idents(adata) <- adata$ct
+# DotPlot(adata, features = unique(features), assay="RNA") + RotatedAxis()
 
-Idents(adata) <- adata$ct
-DotPlot(adata, features = unique(features), assay="RNA") + RotatedAxis()
-
-
-
-## Our top genes
-features <- c(
-
-  #Interferon B
-  "IFI44L"
-  
-)
-#Idents(adata) <- adata$rna_clusters4
-#DotPlot(adata, features = unique(features), assay="RNA") + RotatedAxis()
-Idents(adata) <- adata$ct
-DotPlot(adata, features = unique(features), assay="RNA") + RotatedAxis()
 
 
 ############################
@@ -1096,7 +957,6 @@ compare_motif_with_axis <- function(adata, the_axis){
 
 
 ################################### nTelo axis #######################
-######################################################################
 
 
 ###### nTelo axis  -- within CD4 T
@@ -1110,7 +970,7 @@ rbind(head(motifcor_telo),tail(motifcor_telo))
 ### new
 #TCF7L2 / LEF1 / Ahr::Arnt negative corr (-15%)
 #BATF::JUN positive corr (21%)
-
+write.csv(motifcor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_motif_cd4.csv")
 
 ###### nTelo axis  -- within CD8 T 
 axis_telo <- adata$rank_norm_telo
@@ -1162,6 +1022,7 @@ rbind(head(genecor_telo,n=20),tail(genecor_telo, n=20))
 
 motifcor_telo <- compare_motif_with_axis(adata[,use_sub], axis_telo[use_sub])
 rbind(head(motifcor_telo),tail(motifcor_telo))
+write.csv(motifcor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_motif_cd8.csv")
 #new
 #TCF7L2, LEF1 negative corr. (-40%)
 #BATF3 most positive (41%)
@@ -1261,54 +1122,8 @@ plot_umap_gene(adata,"UMAP_RNA_3D","IL31RA")
 
 plot_umap_groupby(adata,"UMAP_RNA_3D","Phase","rna_clusters3") 
 plot_umap_groupby(adata,"UMAP_RNA_3D","rna_clusters3","Phase") 
-#
 
-# bdata <- adata[,use_sub]
-# bdata <- FindVariableFeatures(bdata, selection.method = "vst", nfeatures = 1000)
-# genecor_telo <- compare_gene_with_axis(bdata, axis_telo[use_sub])
-#plot(sort(as.double(rowSums(bdata@assays$RNA[adata@assays$integrated@var.features,]))))
 
-# cor       gene
-# 1820 -0.2788003   IGKV1-39
-# 1330 -0.2413523      CASC9
-# 628  -0.2392947      SCN3A
-# 1444 -0.2390844    SLCO4C1
-# 1249 -0.2315280     VWA5B1
-# 391  -0.2290522  LINC02232
-# 1488 -0.2195930  LINC01865
-# 751  -0.2179047      IGLC6
-# 1754 -0.2162802 AC073578.2
-# 969  -0.2136518 AC073359.2
-# 325  -0.2088154      RGS13
-# 1390 -0.2071900      NAT8L
-# 1641 -0.2040745      MS4A2
-# 559  -0.1993847      CYYR1
-# 409  -0.1990235      FREM1
-# 680  -0.1963941 AL139020.1
-# 959  -0.1945696     SEMA3D
-# 217  -0.1916210       NPR3
-# 1797 -0.1883852     FAM78B
-# 1151 -0.1882818      KLRF2
-# 835   0.1637936        OSM
-# 864   0.1647254      CLDN5
-# 553   0.1694650       IL1A
-# 1796  0.1704395  EPHA1-AS1
-# 57    0.1706556    HLA-DRA
-# 976   0.1723235 AP002989.1
-# 1031  0.1725352     SLC8A3
-# 1936  0.1757084 AL035665.2
-# 954   0.1775092   GOLGA6L7
-# 1004  0.1786611 AP006261.1
-# 327   0.1804130 AL157895.1
-# 333   0.1849765       SDC1
-# 1546  0.1914370  LINC01189
-# 782   0.1931894      AJAP1
-# 1688  0.2023594     OR5AN1
-# 1672  0.2096032 AP000676.5
-# 1473  0.2546957      TBX10
-# 283   0.2614542    IGHV1-2
-# 328   0.2724800     TPSAB1
-# 667   0.2957994      CDC45
 FeaturePlot(object = adata[,use_sub], reduction = 'UMAP_RNA', features = c("IGHV1-2","CDC45","IGKV1-39","SCN3A","TBX10","IL1A"))
 FeaturePlot(object = adata[,use_sub], reduction = 'UMAP_RNA', features = c("rank_norm_telo","CDKN1C"))
 #adata$rank_norm_telo
