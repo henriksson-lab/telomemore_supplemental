@@ -682,6 +682,7 @@ plot_umap_groupby(adata,"UMAP_RNA_3D","ct","Phase")
 plot_umap_groupby(adata,"UMAP_RNA_3D","Phase","ct")
 
 plot_umap_groupby(adata,"UMAP_ATAC_3D","rna_clusters","Phase")
+plot_umap_groupby(adata,"UMAP_ATAC_3D","rna_clusters2","Phase")
 plot_umap_groupby(adata,"UMAP_ATAC_3D","rna_clusters3","Phase")
 plot_umap_groupby(adata,"UMAP_ATAC_3D","rna_clusters4","Phase")
 plot_umap_groupby(adata,"UMAP_ATAC_3D","atac_clusters3","ct")   #high nTA T cells are r3_8 and r3_4; r3_11 is random
@@ -962,22 +963,22 @@ compare_motif_with_axis <- function(adata, the_axis){
 ###### nTelo axis  -- within CD4 T
 axis_telo <- adata$rank_norm_telo
 use_sub <- adata$rna_clusters2 %in% c("r2_0")
-genecor_telo <- compare_gene_with_axis(adata[,use_sub], axis_telo[use_sub]) #BACH2 still negative corr. pos corr, no clue
+genecor_telo <- compare_gene_with_axis(adata[,use_sub], axis_telo[use_sub]) 
 rbind(head(genecor_telo,n=20),tail(genecor_telo, n=20))
+write.csv(genecor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_gene_cd4.csv", row.names = FALSE)
 
 motifcor_telo <- compare_motif_with_axis(adata[,use_sub], axis_telo[use_sub])
 rbind(head(motifcor_telo),tail(motifcor_telo))
-### new
 #TCF7L2 / LEF1 / Ahr::Arnt negative corr (-15%)
 #BATF::JUN positive corr (21%)
-write.csv(motifcor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_motif_cd4.csv")
+write.csv(motifcor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_motif_cd4.csv", row.names = FALSE)
 
 ###### nTelo axis  -- within CD8 T 
 axis_telo <- adata$rank_norm_telo
 use_sub <- adata$rna_clusters %in% c("r3","r5","r6","r13")
 genecor_telo <- compare_gene_with_axis(adata[,use_sub], axis_telo[use_sub])
 rbind(head(genecor_telo,n=20),tail(genecor_telo, n=20))
-###new. still holds
+write.csv(genecor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_gene_cd8.csv", row.names = FALSE)
 # cor       gene
 # 634  -0.3556189       LEF1 * 
 # 421  -0.3522123      BACH2 *
@@ -1022,8 +1023,7 @@ rbind(head(genecor_telo,n=20),tail(genecor_telo, n=20))
 
 motifcor_telo <- compare_motif_with_axis(adata[,use_sub], axis_telo[use_sub])
 rbind(head(motifcor_telo),tail(motifcor_telo))
-write.csv(motifcor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_motif_cd8.csv")
-#new
+write.csv(motifcor_telo, "/home/mahogny/jupyter/telomere_paper/pbmc/corr/cor_motif_cd8.csv", row.names = FALSE)
 #TCF7L2, LEF1 negative corr. (-40%)
 #BATF3 most positive (41%)
 
