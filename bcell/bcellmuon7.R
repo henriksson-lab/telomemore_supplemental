@@ -1,3 +1,35 @@
+
+#TODO count how many ATACseq reads are on each chromosome
+
+#table(read.csv("/corgi/otherdataset/marquez2020/loop/parttelo/out.sam", comment.char = "@", sep = "\t")[,3])
+#when mapped to t2t, these reads mainly mitochondria. but spread all over otherwise
+
+
+
+
+
+con <- gzcon(file("/corgi/cellbuster/bigb/aggr/outs/atac_fragments.tsv.gz", "r", blocking = FALSE))
+i <- 0
+outsums <- list()
+while(TRUE){
+  somelines <- readLines(con, n=1000000)
+  i <- i+1
+  print(i)
+  if(length(somelines)==0){
+    break;
+  }
+  therows <- as.data.frame(str_split_fixed(somelines,"\t",5)[,c(1,4)])
+  colnames(therows) <- c("chr","bc")
+  outsums[[i]] <- sqldf::sqldf("select chr, bc, count(bc) as cnt from therows group by chr,bc")
+}
+close(con)
+do.call(rbind, outsums)
+
+
+
+
+
+
 if(FALSE){
 
   if (!require("BiocManager", quietly = TRUE))

@@ -689,6 +689,10 @@ plot_umap_groupby(adata,"UMAP_ATAC_3D","atac_clusters3","ct")   #high nTA T cell
 plot_umap_groupby(adata,"UMAP_ATAC_3D","ct","atac_clusters3")
 
 
+plot_umap_gene(adata,"UMAP_RNA_3D","ADRB1","pred.hpca")  
+plot_umap_gene(adata,"UMAP_RNA_3D","ADRB2","pred.hpca")  
+plot_umap_gene(adata,"UMAP_RNA_3D","ADRB3","pred.hpca")  
+
 
 plot_umap_groupby(adata,"UMAP_RNA_3D","pred.dice","Phase")  
 plot_umap_groupby(adata,"UMAP_RNA_3D","pred.hpca","Phase")  
@@ -1545,6 +1549,12 @@ DimPlot(object = bdata, reduction = 'UMAP_RNA', group.by = "pred.dice")#, label 
 ################ Final UMAP plots ###################################### For monocytes
 ########################################################################
 
+#subset(adata, rna_clusters2 %in% c("r2_0","r2_1") &  #should be 1 and 5, or just 1
+#         pred.dice %!in% c("B cells, naive") &
+#         pred.monaco %in% c("Classical monocytes","Intermediate monocytes","Non classical monocytes") &
+#         str_starts(pred.dice,"Monocytes"))
+
+
 bdata <- adata[,adata$rna_clusters2 %in% c("r2_0","r2_1") &  #should be 1 and 5, or just 1
                  adata$pred.dice %!in% c("B cells, naive") &
                  adata$pred.monaco %in% c("Classical monocytes","Intermediate monocytes","Non classical monocytes") &
@@ -1570,6 +1580,16 @@ p6 <- styleGG(DimPlot(raster=TRUE, object = bdata, reduction = 'UMAP_RNA', group
 p1/p2|p3/p4|p5/p6
 ggsave("~/monocyte.pdf")
 
+
+
+p1 <- styleGG(FeaturePlot(raster=TRUE, object = adata, reduction = 'UMAP_RNA', features = c("rank_norm_telo"))) 
+p2 <- styleGG(FeaturePlot(raster=TRUE, object = adata, reduction = 'UMAP_RNA', features = c("FCGR3A")))  #CD16
+p3 <- styleGG(FeaturePlot(raster=TRUE, object = adata, reduction = 'UMAP_RNA', features = c("CD14")))  #CD16
+p4 <- styleGG(FeaturePlot(raster=TRUE, object = adata, reduction = 'UMAP_RNA', features = c("CDKN1C")))
+p5 <- styleGG(DimPlot(raster=TRUE, object = adata, reduction = 'UMAP_RNA', group.by = "Phase"))
+p6 <- styleGG(DimPlot(raster=TRUE, object = adata, reduction = 'UMAP_RNA', group.by = "pred.monaco")+ggtitle("Cell type"))
+p7 <- styleGG(FeaturePlot(raster=TRUE, object = adata, reduction = 'UMAP_RNA', features = c("TET2")))
+p1/p2|p3/p4|p5/p6|p7/p7
 
 
 
@@ -1675,6 +1695,7 @@ ggsave("~/pbmc_telo_dedup.pdf", width = 7, height = 3)
 
 sum(adata$dedupcnt_telo, na.rm = TRUE) / sum(adata$rawcnt_telo, na.rm = TRUE)
 # 0.4043948
+
 
 
 
